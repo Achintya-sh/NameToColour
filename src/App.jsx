@@ -11,12 +11,13 @@ const EASTER_EGGS = {
   'kashish meena': {
     hex: '520000', prefix: 'Yours is', title: 'my favourite.',
     desc: "Algorithms and hashes don't apply to you. Your name bypasses the math, radiating a perfect 360° glow in your absolute favourite shade.",
-    label: "Her Favourite Colour", emojis: ['🔥', '❤️', '🔥', '💖', '🔥', '💘', '✨'], angle: 360
+    label: "Her Favourite Colour", emojis: ['🔥', '❤️', '🔥', '💖', '🔥', '💘', '✨'], angle: 360,
   },
   'achintya sharma': {
     hex: '00F0FF', prefix: 'Mine is', title: 'the source code.',
     desc: "Creator recognized. Master override engaged. The underlying algorithm steps aside for the architect.",
-    label: "Creator Identity", emojis: ['💻', '⚡', '⚙️', '👑', '🚀', '{ }', '< >'], angle: 180
+    label: "Creator Identity", emojis: ['💻', '⚡', '⚙️', '👑', '🚀', '{ }', '< >'], angle: 180,
+    customHeader: (colour) => <>Code dreams<br/>in <em style={{ color: colour }}>cyan.</em></>
   },
 
   /* THE HEAVY HITTERS */
@@ -82,7 +83,8 @@ const EASTER_EGGS = {
   'homer simpson': {
     hex: 'FFD90F', prefix: '', title: "D'oh!",
     desc: "D'oh!",
-    label: "Nuclear Yellow", emojis: ['🍩', '🍺', '☢️', '🟡', '📺'], angle: 90
+    label: "Nuclear Yellow", emojis: ['🍩', '🍺', '☢️', '🟡', '📺'], angle: 90,
+    customHeader: (colour) => <>Mmm, <em style={{ color: colour }}>D'oh!</em></>
   },
 
   /* BADASS CHARACTERS */
@@ -128,12 +130,14 @@ const EASTER_EGGS = {
   'kratos': {
     hex: 'A41E3A', prefix: 'Yours is', title: 'the ghost of sparta.',
     desc: "A Spartan warrior of unparalleled rage and power. From blood-soaked Greece to the frozen Nordic realms, the Ghost cannot be contained by mere algorithms.",
-    label: "Spartan Rage", emojis: ['⚔️', '🔴', '💀', '🛡️', '🔥'], angle: 90
+    label: "Spartan Rage", emojis: ['⚔️', '🔴', '💀', '🛡️', '🔥'], angle: 90,
+    customHeader: (colour) => <>Rage and blood<br/>manifest in <em style={{ color: colour }}>crimson.</em></>
   },
   'zeus': {
     hex: 'FFD700', prefix: 'Yours is', title: 'king of the gods.',
     desc: "Father of gods and men, wielder of the Master Bolt. Even in death, his tyranny overrides all calculations.",
-    label: "Olympus Override", emojis: ['⚡', '👑', '🔱', '☁️', '✨'], angle: 0
+    label: "Olympus Override", emojis: ['⚡', '👑', '🔱', '☁️', '✨'], angle: 0,
+    customHeader: (colour) => <>Gods transcend<br/>the mortal <em style={{ color: colour }}>palette.</em></>
   },
   'ares': {
     hex: '8B0000', prefix: 'Yours is', title: 'the god of war.',
@@ -168,17 +172,20 @@ const EASTER_EGGS = {
   'atreus': {
     hex: '2E7D32', prefix: 'Yours is', title: 'loki, the trickster god.',
     desc: "Son of Kratos. Part boy, part god, part mischief. The algorithm never saw him coming.",
-    label: "Loki's Cunning", emojis: ['🦁', '🎯', '🐺', '✨', '🟢'], angle: 120
+    label: "Loki's Cunning", emojis: ['🦁', '🎯', '🐺', '✨', '🟢'], angle: 120,
+    customHeader: (colour) => <>Destiny weaves<br/>in <em style={{ color: colour }}>verdant</em> mischief.</>
   },
   'thor': {
     hex: '4A90E2', prefix: 'Yours is', title: 'god of thunder.',
     desc: "Mighty Thor of Asgard. Even in death, his storm rages eternal. Mjolnir strikes where algorithms fail.",
-    label: "Thunderous Override", emojis: ['⚡', '🔨', '🌩️', '👹', '🔵'], angle: 90
+    label: "Thunderous Override", emojis: ['⚡', '🔨', '🌩️', '👹', '🔵'], angle: 90,
+    customHeader: (colour) => <>Thunder crashes<br/>in <em style={{ color: colour }}>azure</em> fury.</>
   },
   'odin': {
     hex: 'D4A574', prefix: 'Yours is', title: 'the all-father.',
     desc: "Odin All-Father, master of fate and magic. One eye sees all—including beyond the CRC32 veil.",
-    label: "All-Father's Sight", emojis: ['👁️', '👑', '🐺', '✨', '⚡'], angle: 180
+    label: "All-Father's Sight", emojis: ['👁️', '👑', '🐺', '✨', '⚡'], angle: 180,
+    customHeader: (colour) => <>Fate itself dwells<br/>in <em style={{ color: colour }}>gold.</em></>
   },
   'freya': {
     hex: '1E3A8A', prefix: 'Yours is', title: 'the shield maiden.',
@@ -218,7 +225,8 @@ const EASTER_EGGS = {
   'jormungandr': {
     hex: '2F5233', prefix: 'Yours is', title: 'the world serpent.',
     desc: "Midgard Serpent of prophecy. Spans all nine realms. No CRC32 can contain such cosmic scale.",
-    label: "Serpent's Coil", emojis: ['🐍', '🌍', '⚫', '✨', '🟢'], angle: 180
+    label: "Serpent's Coil", emojis: ['🐍', '🌍', '⚫', '✨', '🟢'], angle: 180,
+    customHeader: (colour) => <>The serpent coils<br/>through all <em style={{ color: colour }}>nine realms.</em></>
   }
 };
 
@@ -279,7 +287,11 @@ export default function App() {
       angleDeg = activeEgg.angle;
       
       // We dynamically pull the prefix (Mine is vs Yours is) right here!
-      headerText = <>Every name is a colour.<br/>{activeEgg.prefix} <em style={{ color: colour }}>{activeEgg.title}</em></>;
+      if (activeEgg.customHeader) {
+        headerText = activeEgg.customHeader(colour);
+      } else {
+        headerText = <>Every name is a colour.<br/>{activeEgg.prefix} <em style={{ color: colour }}>{activeEgg.title}</em></>;
+      }
       subtitleText = activeEgg.desc;
       labelText = activeEgg.label;
     } else {
