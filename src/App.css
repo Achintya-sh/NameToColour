@@ -201,3 +201,20 @@ input[type="text"]:focus + .input-label { color: var(--accent); }
     opacity: 0;
   }
 }
+
+/* =========================================
+   ✨ INTERACTIVE FEATURES ✨
+   ========================================= */
+.copyable {
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.copyable:hover {
+  transform: scale(1.05);
+  text-shadow: 0 0 12px rgba(255,255,255,0.2);
+}
+
+.copyable:active {
+  transform: scale(0.95);
+}
