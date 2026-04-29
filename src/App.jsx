@@ -1,0 +1,128 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { crc32 } from './utils/crc32';
+import './App.css';
+
+export default function App() {
+  const [name, setName] = useState('');
+  const inputRef = useRef(null);
+
+  // Focus input if tapping background on mobile
+  useEffect(() => {
+    const handleBodyClick = (e) => {
+      if (window.innerWidth <= 800 && e.target !== inputRef.current) {
+        inputRef.current?.focus();
+      }
+    };
+    document.addEventListener('click', handleBodyClick);
+    return () => document.removeEventListener('click', handleBodyClick);
+  }, []);
+
+  const hasInput = name.trim() !== '';
+  
+  // Calculate hash and colours
+  const hash8 = hasInput ? crc32(name) : '00000000';
+  const hash6 = hash8.slice(0, 6);
+  const angleHex = hash8.slice(6, 8);
+  const colour = hasInput ? '#' + hash6 : '#1a1a1a';
+  
+  const angleInt = parseInt(angleHex, 16);
+  const angleDeg = hasInput ? Math.round((angleInt / 255) * 360) : 0;
+
+  // Calculate contrast for the pill background on mobile
+  const r = parseInt(hash6.slice(0, 2), 16);
+  const g = parseInt(hash6.slice(2, 4), 16);
+  const b = parseInt(hash6.slice(4, 6), 16);
+  const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+  const isLight = yiq >= 128;
+
+  // Dynamic inline styles
+  const swatchStyle = {
+    backgroundColor: colour,
+  };
+
+  const sheenStyle = {
+    backgroundImage: hasInput 
+      ? `linear-gradient(${angleDeg}deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.05) 30%, transparent 50%, rgba(0,0,0,0.15) 100%)`
+      : 'none',
+  };
+
+  // Dynamic mobile scaling for long names
+  const inputStyle = {
+    fontSize: name.length > 12 ? 'clamp(28px, 10vw, 50px)' : 'clamp(48px, 15vw, 90px)'
+  };
+
+  return (
+    <div className="page" style={{
+      '--mobile-pill-bg': isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)',
+      '--mobile-pill-border': isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.08)'
+    }}>
+      <div className="left">
+        <p className="eyebrow">Name → Colour</p>
+        <h1>Every name<br/>is a <em>colour.</em></h1>
+        <p className="subtitle">An 8-character hash is generated from your name. The first 6 define your base colour, the final 2 calculate a light angle.</p>
+
+        <div className="input-group">
+          <label className="input-label" htmlFor="nameInput">Your name</label>
+          <input 
+            type="text" 
+            id="nameInput" 
+            ref={inputRef}
+            placeholder="Enter name..." 
+            autoComplete="off" 
+            spellCheck="false"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            style={inputStyle}
+          />
+          <div className="underline-bar"></div>
+        </div>
+
+        <div className={`result-block ${hasInput ? 'visible' : ''}`}>
+          <div className="stagger-item">
+            <p className="hex-display">Calculated Hex</p>
+            <p className="hex-value" style={{ color: colour }}>{colour}</p>
+          </div>
+          
+          <div className="algo-steps stagger-item">
+            <div className="step">
+              <span className="step-label">crc32</span>
+              <span className="step-val">{hash8}</span>
+            </div>
+            <div className="step">
+              <span className="step-label">base</span>
+              <span className="step-val">{hash6} (base)</span>
+            </div>
+            <div className="step">
+              <span className="step-label">angle</span>
+              <span className="step-val highlight">{angleHex} → {angleDeg}°</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="divider"></div>
+
+      <div className="right" style={swatchStyle}>
+        <div className={`light-sheen ${hasInput ? 'active' : ''}`} style={sheenStyle}></div>
+        <p className="corner-text">Colour identity</p>
+        
+        <span className={`swatch-hex-pill ${hasInput ? 'visible' : ''}`}>
+          {colour}
+        </span>
+
+        <div className={`idle-msg ${hasInput ? 'hidden' : ''}`}>
+          <div className="idle-inner">
+            <div className="idle-circle">N</div>
+            <p className="idle-text">Awaiting Entry</p>
+          </div>
+        </div>
+
+        <div className="stagger-item swatch-text-group" style={{ opacity: hasInput ? 1 : 0 }}>
+          <p className="swatch-label">colour of</p>
+          <p className="swatch-name">{name || '\u00a0'}</p>
+        </div>
+      </div>
+      
+    </div>
+  );
+}
