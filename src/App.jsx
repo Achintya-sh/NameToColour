@@ -4,6 +4,7 @@ import './App.css';
 
 export default function App() {
   const [name, setName] = useState('');
+  const [particles, setParticles] = useState([]);
   const inputRef = useRef(null);
 
   // Focus input if tapping background on mobile
@@ -19,19 +20,56 @@ export default function App() {
 
   const hasInput = name.trim() !== '';
   
-  // Calculate hash and colours
-  const hash8 = hasInput ? crc32(name) : '00000000';
-  const hash6 = hash8.slice(0, 6);
-  const angleHex = hash8.slice(6, 8);
-  const colour = hasInput ? '#' + hash6 : '#1a1a1a';
-  
-  const angleInt = parseInt(angleHex, 16);
-  const angleDeg = hasInput ? Math.round((angleInt / 255) * 360) : 0;
+  // --- THE GIRLFRIEND EXCEPTION ---
+  const isKashish = name.trim().toLowerCase() === 'kashish meena';
+
+  // Trigger the fire & heart explosion when her name is typed
+  useEffect(() => {
+    if (isKashish) {
+      const emojis = ['🔥', '❤️', '🔥', '💖', '🔥', '💘', '✨'];
+      const newParticles = Array.from({ length: 40 }).map((_, i) => ({
+        id: i,
+        emoji: emojis[Math.floor(Math.random() * emojis.length)],
+        left: `${Math.random() * 100}vw`,
+        animationDuration: `${Math.random() * 2 + 2}s`, // Between 2-4 seconds
+        delay: `${Math.random() * 0.5}s`,
+        size: `${Math.random() * 2 + 1.5}rem`
+      }));
+      setParticles(newParticles);
+    } else {
+      setParticles([]); // Clear explosion if name changes
+    }
+  }, [isKashish]);
+
+  // Calculate hash and colours (with Override)
+  let hash8 = '00000000';
+  let hash6 = '000000';
+  let angleHex = '00';
+  let colour = '#1a1a1a';
+  let angleDeg = 0;
+
+  if (hasInput) {
+    if (isKashish) {
+      // Force her favourite settings
+      hash8 = 'L0VE1000'; 
+      hash6 = '520000';
+      angleHex = 'FF';
+      colour = '#520000';
+      angleDeg = 360; // Max heat/sheen
+    } else {
+      // Standard deterministic math
+      hash8 = crc32(name);
+      hash6 = hash8.slice(0, 6);
+      angleHex = hash8.slice(6, 8);
+      colour = '#' + hash6;
+      angleDeg = Math.round((parseInt(angleHex, 16) / 255) * 360);
+    }
+  }
 
   // Calculate contrast for the pill background on mobile
-  const r = parseInt(hash6.slice(0, 2), 16);
-  const g = parseInt(hash6.slice(2, 4), 16);
-  const b = parseInt(hash6.slice(4, 6), 16);
+  const r = parseInt(hash6.slice(0, 2), 16) || 0;
+  const g = parseInt(hash6.slice(2, 4), 16) || 0;
+  const b = parseInt(hash6.slice(4, 6), 16) || 0;
   const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
   const isLight = yiq >= 128;
 
@@ -46,7 +84,6 @@ export default function App() {
       : 'none',
   };
 
-  // Dynamic mobile scaling for long names
   const inputStyle = {
     fontSize: name.length > 12 ? 'clamp(28px, 10vw, 50px)' : 'clamp(48px, 15vw, 90px)'
   };
@@ -56,10 +93,41 @@ export default function App() {
       '--mobile-pill-bg': isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)',
       '--mobile-pill-border': isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.08)'
     }}>
+      {/* RENDER THE FIRE AND HEARTS IF IT IS HER */}
+      {particles.map(p => (
+        <div 
+          key={p.id} 
+          className="particle"
+          style={{
+            left: p.left,
+            fontSize: p.size,
+            animationDuration: p.animationDuration,
+            animationDelay: p.delay
+          }}
+        >
+          {p.emoji}
+        </div>
+      ))}
+
       <div className="left">
         <p className="eyebrow">Name → Colour</p>
-        <h1>Every name<br/>is a <em>colour.</em></h1>
-        <p className="subtitle">An 8-character hash is generated from your name. The first 6 define your base colour, the final 2 calculate a light angle.</p>
+        
+        {/* --- DYNAMIC HEADER --- */}
+        <h1>
+          {isKashish ? (
+            <>Every name is a colour.<br/>Yours is <em style={{ color: colour }}>my favourite.</em></>
+          ) : (
+            <>Every name<br/>is a <em>colour.</em></>
+          )}
+        </h1>
+        
+        {/* --- DYNAMIC SUBTITLE --- */}
+        <p className="subtitle">
+          {isKashish 
+            ? "Algorithms and hashes don't apply to you. Your name bypasses the math, radiating a perfect 360° glow in your absolute favourite shade."
+            : "An 8-character hash is generated from your name. The first 6 define your base colour, the final 2 calculate a light angle."
+          }
+        </p>
 
         <div className="input-group">
           <label className="input-label" htmlFor="nameInput">Your name</label>
@@ -79,7 +147,7 @@ export default function App() {
 
         <div className={`result-block ${hasInput ? 'visible' : ''}`}>
           <div className="stagger-item">
-            <p className="hex-display">Calculated Hex</p>
+            <p className="hex-display">{isKashish ? 'Her Favourite Colour' : 'Calculated Hex'}</p>
             <p className="hex-value" style={{ color: colour }}>{colour}</p>
           </div>
           

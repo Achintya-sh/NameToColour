@@ -171,3 +171,33 @@ input[type="text"]:focus + .input-label { color: var(--accent); }
     text-shadow: 0 1px 4px rgba(0,0,0,0.2);
   }
 }
+
+/* =========================================
+   🔥 EASTER EGG ANIMATIONS 🔥 
+   ========================================= */
+.particle {
+  position: fixed;
+  bottom: -100px;
+  pointer-events: none;
+  z-index: 9999;
+  animation: floatUp ease-in forwards;
+  opacity: 0;
+  text-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(0) scale(0.5) rotate(-15deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-120vh) scale(1.5) rotate(15deg);
+    opacity: 0;
+  }
+}
