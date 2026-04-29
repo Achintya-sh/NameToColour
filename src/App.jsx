@@ -20,10 +20,11 @@ export default function App() {
 
   const hasInput = name.trim() !== '';
   
-  // --- THE GIRLFRIEND EXCEPTION ---
+  // --- EXCEPTION FLAGS ---
   const isKashish = name.trim().toLowerCase() === 'kashish meena';
+  const isAchintya = name.trim().toLowerCase() === 'achintya sharma';
 
-  // Trigger the fire & heart explosion when her name is typed
+  // Trigger custom particle explosions
   useEffect(() => {
     if (isKashish) {
       const emojis = ['🔥', '❤️', '🔥', '💖', '🔥', '💘', '✨'];
@@ -31,17 +32,29 @@ export default function App() {
         id: i,
         emoji: emojis[Math.floor(Math.random() * emojis.length)],
         left: `${Math.random() * 100}vw`,
-        animationDuration: `${Math.random() * 2 + 2}s`, // Between 2-4 seconds
+        animationDuration: `${Math.random() * 2 + 2}s`,
+        delay: `${Math.random() * 0.5}s`,
+        size: `${Math.random() * 2 + 1.5}rem`
+      }));
+      setParticles(newParticles);
+    } else if (isAchintya) {
+      // The Creator's Emojis: Tech, Power, and Code
+      const emojis = ['💻', '⚡', '⚙️', '👑', '🚀', '{ }', '< >'];
+      const newParticles = Array.from({ length: 40 }).map((_, i) => ({
+        id: i,
+        emoji: emojis[Math.floor(Math.random() * emojis.length)],
+        left: `${Math.random() * 100}vw`,
+        animationDuration: `${Math.random() * 2 + 2}s`,
         delay: `${Math.random() * 0.5}s`,
         size: `${Math.random() * 2 + 1.5}rem`
       }));
       setParticles(newParticles);
     } else {
-      setParticles([]); // Clear explosion if name changes
+      setParticles([]); // Clear explosion if it's a normal name
     }
-  }, [isKashish]);
+  }, [isKashish, isAchintya]);
 
-  // Calculate hash and colours (with Override)
+  // Calculate hash and colours (with Overrides)
   let hash8 = '00000000';
   let hash6 = '000000';
   let angleHex = '00';
@@ -50,12 +63,19 @@ export default function App() {
 
   if (hasInput) {
     if (isKashish) {
-      // Force her favourite settings
+      // Her Overrides
       hash8 = 'L0VE1000'; 
       hash6 = '520000';
       angleHex = 'FF';
       colour = '#520000';
-      angleDeg = 360; // Max heat/sheen
+      angleDeg = 360; 
+    } else if (isAchintya) {
+      // Creator Overrides (Neon Cyberpunk Cyan)
+      hash8 = 'M4ST3RKY'; 
+      hash6 = '00F0FF';
+      angleHex = 'FF';
+      colour = '#00F0FF';
+      angleDeg = 180; 
     } else {
       // Standard deterministic math
       hash8 = crc32(name);
@@ -73,17 +93,28 @@ export default function App() {
   const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
   const isLight = yiq >= 128;
 
-  // Dynamic inline styles
-  const swatchStyle = {
-    backgroundColor: colour,
-  };
+  // --- DYNAMIC TEXT LOGIC ---
+  let headerText = <>Every name<br/>is a <em>colour.</em></>;
+  let subtitleText = "An 8-character hash is generated from your name. The first 6 define your base colour, the final 2 calculate a light angle.";
+  let labelText = "Calculated Hex";
 
+  if (isKashish) {
+    headerText = <>Every name is a colour.<br/>Yours is <em style={{ color: colour }}>my favourite.</em></>;
+    subtitleText = "Algorithms and hashes don't apply to you. Your name bypasses the math, radiating a perfect 360° glow in your absolute favourite shade.";
+    labelText = "Her Favourite Colour";
+  } else if (isAchintya) {
+    headerText = <>Every name is a colour.<br/>Mine is <em style={{ color: colour }}>the source code.</em></>;
+    subtitleText = "Creator recognized. Master override engaged. The underlying algorithm steps aside for the G.O.A.T";
+    labelText = "Creator Identity";
+  }
+
+  // Dynamic inline styles
+  const swatchStyle = { backgroundColor: colour };
   const sheenStyle = {
     backgroundImage: hasInput 
       ? `linear-gradient(${angleDeg}deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.05) 30%, transparent 50%, rgba(0,0,0,0.15) 100%)`
       : 'none',
   };
-
   const inputStyle = {
     fontSize: name.length > 12 ? 'clamp(28px, 10vw, 50px)' : 'clamp(48px, 15vw, 90px)'
   };
@@ -93,7 +124,8 @@ export default function App() {
       '--mobile-pill-bg': isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)',
       '--mobile-pill-border': isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.08)'
     }}>
-      {/* RENDER THE FIRE AND HEARTS IF IT IS HER */}
+      
+      {/* EASTER EGG PARTICLES */}
       {particles.map(p => (
         <div 
           key={p.id} 
@@ -102,7 +134,8 @@ export default function App() {
             left: p.left,
             fontSize: p.size,
             animationDuration: p.animationDuration,
-            animationDelay: p.delay
+            animationDelay: p.delay,
+            fontFamily: isAchintya ? "'DM Mono', monospace" : "inherit"
           }}
         >
           {p.emoji}
@@ -112,22 +145,8 @@ export default function App() {
       <div className="left">
         <p className="eyebrow">Name → Colour</p>
         
-        {/* --- DYNAMIC HEADER --- */}
-        <h1>
-          {isKashish ? (
-            <>Every name is a colour.<br/>Yours is <em style={{ color: colour }}>my favourite.</em></>
-          ) : (
-            <>Every name<br/>is a <em>colour.</em></>
-          )}
-        </h1>
-        
-        {/* --- DYNAMIC SUBTITLE --- */}
-        <p className="subtitle">
-          {isKashish 
-            ? "Algorithms and hashes don't apply to you. Your name bypasses the math, radiating a perfect 360° glow in your absolute favourite shade."
-            : "An 8-character hash is generated from your name. The first 6 define your base colour, the final 2 calculate a light angle."
-          }
-        </p>
+        <h1>{headerText}</h1>
+        <p className="subtitle">{subtitleText}</p>
 
         <div className="input-group">
           <label className="input-label" htmlFor="nameInput">Your name</label>
@@ -147,13 +166,13 @@ export default function App() {
 
         <div className={`result-block ${hasInput ? 'visible' : ''}`}>
           <div className="stagger-item">
-            <p className="hex-display">{isKashish ? 'Her Favourite Colour' : 'Calculated Hex'}</p>
+            <p className="hex-display">{labelText}</p>
             <p className="hex-value" style={{ color: colour }}>{colour}</p>
           </div>
           
           <div className="algo-steps stagger-item">
             <div className="step">
-              <span className="step-label">crc32</span>
+              <span className="step-label">{isAchintya ? 'override' : 'crc32'}</span>
               <span className="step-val">{hash8}</span>
             </div>
             <div className="step">
