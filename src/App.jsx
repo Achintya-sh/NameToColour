@@ -1,8 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { crc32 } from './utils/crc32';
 import { EASTER_EGGS } from './eastereggs';
 import { Analytics } from '@vercel/analytics/react';
 import './App.css';
+
+const getContrastColor = (hex) => {
+  const r = parseInt(hex.slice(0, 2), 16) || 0;
+  const g = parseInt(hex.slice(2, 4), 16) || 0;
+  const b = parseInt(hex.slice(4, 6), 16) || 0;
+  return (((r * 299) + (g * 587) + (b * 114)) / 1000) >= 128;
+};
 
 export default function App() {
   const [name, setName] = useState('');
@@ -25,6 +32,22 @@ export default function App() {
   const normalizedName = name.trim().toLowerCase();
   const activeEgg = EASTER_EGGS[normalizedName];
 
+  // Memoize hash and color calculations
+  const { hash8, hash6, angleHex, colour, angleDeg } = useMemo(() => {
+    if (!hasInput) return { hash8: '00000000', hash6: '000000', angleHex: '00', colour: '#1a1a1a', angleDeg: 0 };
+    
+    if (activeEgg) {
+      return { hash8: 'OVERRIDE', hash6: activeEgg.hex, angleHex: 'FF', colour: '#' + activeEgg.hex, angleDeg: activeEgg.angle };
+    }
+    
+    const h = crc32(name);
+    const h6 = h.slice(0, 6);
+    const aHex = h.slice(6, 8);
+    return { hash8: h, hash6: h6, angleHex: aHex, colour: '#' + h6, angleDeg: Math.round((parseInt(aHex, 16) / 255) * 360) };
+  }, [hasInput, activeEgg, name]);
+
+  const isLight = useMemo(() => getContrastColor(hash6), [hash6]);
+
   // Trigger custom particle explosions
   useEffect(() => {
     if (activeEgg) {
@@ -42,47 +65,20 @@ export default function App() {
     }
   }, [activeEgg]);
 
-  // Handle Math & Overrides
-  let hash8 = '00000000', hash6 = '000000', angleHex = '00';
-  let colour = '#1a1a1a', angleDeg = 0;
-  
-  // Handle Dynamic Text
-  let headerText = <>Every name<br/>is a <em>colour.</em></>;
-  let subtitleText = "An 8-character hash is generated from your name. The first 6 define your base colour, the final 2 calculate a light angle.";
-  let labelText = "Calculated Hex";
-
-  if (hasInput) {
-    if (activeEgg) {
-      // Apply Easter Egg Settings
-      hash8 = 'OVERRIDE'; 
-      hash6 = activeEgg.hex;
-      angleHex = 'FF';
-      colour = '#' + activeEgg.hex;
-      angleDeg = activeEgg.angle;
-      
-      // We dynamically pull the prefix (Mine is vs Yours is) right here!
-      if (activeEgg.customHeader) {
-        headerText = activeEgg.customHeader(colour);
-      } else {
-        headerText = <>Every name is a colour.<br/>{activeEgg.prefix} <em style={{ color: colour }}>{activeEgg.title}</em></>;
-      }
-      subtitleText = activeEgg.desc;
-      labelText = activeEgg.label;
-    } else {
-      // Standard Math
-      hash8 = crc32(name);
-      hash6 = hash8.slice(0, 6);
-      angleHex = hash8.slice(6, 8);
-      colour = '#' + hash6;
-      angleDeg = Math.round((parseInt(angleHex, 16) / 255) * 360);
-    }
-  }
-
-  // Calculate contrast for mobile reading
-  const r = parseInt(hash6.slice(0, 2), 16) || 0;
-  const g = parseInt(hash6.slice(2, 4), 16) || 0;
-  const b = parseInt(hash6.slice(4, 6), 16) || 0;
-  const isLight = (((r * 299) + (g * 587) + (b * 114)) / 1000) >= 128;
+  // Memoize dynamic text
+  const { headerText, subtitleText, labelText } = useMemo(() => ({
+    headerText: !hasInput ? (
+      <>Every name<br/>is a <em>colour.</em></>
+    ) : activeEgg?.customHeader ? (
+      activeEgg.customHeader(colour)
+    ) : activeEgg ? (
+      <>Every name is a colour.<br/>{activeEgg.prefix} <em style={{ color: colour }}>{activeEgg.title}</em></>
+    ) : (
+      <>Every name<br/>is a <em>colour.</em></>
+    ),
+    subtitleText: activeEgg?.desc || "An 8-character hash is generated from your name. The first 6 define your base colour, the final 2 calculate a light angle.",
+    labelText: activeEgg?.label || "Calculated Hex"
+  }), [hasInput, activeEgg, colour]);
 
   // Copy to Clipboard Function
   const handleCopy = () => {
