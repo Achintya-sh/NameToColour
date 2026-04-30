@@ -17,7 +17,6 @@ const EASTER_EGGS = {
     hex: '00F0FF', prefix: 'Mine is', title: 'the source code.',
     desc: "Creator recognized. Master override engaged. The underlying algorithm steps aside for the architect.",
     label: "Creator Identity", emojis: ['💻', '⚡', '⚙️', '👑', '🚀', '{ }', '< >'], angle: 180,
-    customHeader: (colour) => <>Code dreams<br/>in <em style={{ color: colour }}>cyan.</em></>
   },
 
   /* THE HEAVY HITTERS */
